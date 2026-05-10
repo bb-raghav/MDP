@@ -3,3 +3,12 @@ numpy
 matplotlib
 scikit-learn
 jupyter
+
+sqlalchemy
+psycopg2-binary
+python-dotenv
+
+rasterio
+geopandas
+
+gdown
