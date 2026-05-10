@@ -5,8 +5,10 @@ __pycache__/
 
 *.pyc
 *.pyo
-
+.claude/skills/neon-postgres
+.agents/skills/neon-postgres
 data/raw/
 outputs/
-
+.agents/
+.claude/
 .DS_Store
