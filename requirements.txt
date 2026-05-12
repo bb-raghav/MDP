@@ -1,14 +1,41 @@
+# =========================
+# Core Data Science
+# =========================
 pandas
 numpy
-matplotlib
 scikit-learn
-jupyter
+matplotlib
 
+# =========================
+# Geospatial Processing
+# =========================
+rasterio
+geopandas
+
+# =========================
+# Database
+# =========================
 sqlalchemy
 psycopg2-binary
 python-dotenv
 
-rasterio
-geopandas
+# =========================
+# Notebook / Research
+# =========================
+jupyter
 
+# =========================
+# Utilities
+# =========================
 gdown
+
+# =========================
+# Backend API
+# =========================
+fastapi
+uvicorn
+
+# =========================
+# Frontend Integration / API
+# =========================
+openpyxl

@@ -1,14 +1,57 @@
-venv/
-.env
+# =========================
+# Python
+# =========================
 __pycache__/
-.ipynb_checkpoints/
-
 *.pyc
 *.pyo
-.claude/skills/neon-postgres
-.agents/skills/neon-postgres
+*.pyd
+
+# Virtual Environments
+venv/
+.venv/
+
+# Environment Variables
+.env
+
+# =========================
+# Node / Frontend
+# =========================
+node_modules/
+dist/
+
+# =========================
+# Jupyter
+# =========================
+.ipynb_checkpoints/
+
+# =========================
+# VSCode
+# =========================
+.vscode/
+
+# =========================
+# macOS
+# =========================
+.DS_Store
+
+# =========================
+# Project Outputs
+# =========================
+outputs/logs/
+outputs/models/
+outputs/predictions/
+outputs/plots/
+
+# Trained Models
+*.pkl
+
+# =========================
+# Raw Data
+# =========================
 data/raw/
-outputs/
+
+# =========================
+# Internal AI / Agent Stuff
+# =========================
 .agents/
 .claude/
-.DS_Store
