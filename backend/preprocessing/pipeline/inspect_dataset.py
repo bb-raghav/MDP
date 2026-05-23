@@ -1,16 +1,27 @@
 import pandas as pd
 
-FILE_PATH = (
-    "data/external/"
-    "final_merged_dataset_fixed.xlsx"
-)
-
 
 def inspect_dataset():
 
     print("\nLoading dataset...\n")
 
-    df = pd.read_excel(FILE_PATH)
+
+    FILE_PATH = (
+        "data/external/"
+        "data_1055_rows.csv"
+    )
+
+
+    # =========================
+    # LOAD CSV
+    # =========================
+
+    df = pd.read_csv(FILE_PATH)
+
+
+    # =========================
+    # SHAPE
+    # =========================
 
     print("=" * 60)
     print("DATASET SHAPE")
@@ -18,50 +29,68 @@ def inspect_dataset():
 
     print(df.shape)
 
-    print("\n")
 
-    print("=" * 60)
-    print("COLUMN NAMES")
+    # =========================
+    # COLUMNS
+    # =========================
+
+    print("\n" + "=" * 60)
+    print("COLUMNS")
     print("=" * 60)
 
     print(df.columns.tolist())
 
-    print("\n")
 
-    print("=" * 60)
-    print("DATA TYPES")
-    print("=" * 60)
+    # =========================
+    # FIRST 5 ROWS
+    # =========================
 
-    print(df.dtypes)
-
-    print("\n")
-
-    print("=" * 60)
-    print("MISSING VALUES")
-    print("=" * 60)
-
-    print(df.isnull().sum())
-
-    print("\n")
-
-    print("=" * 60)
-    print("DUPLICATE ROWS")
-    print("=" * 60)
-
-    print(df.duplicated().sum())
-
-    print("\n")
-
-    print("=" * 60)
+    print("\n" + "=" * 60)
     print("FIRST 5 ROWS")
     print("=" * 60)
 
     print(df.head())
 
-    print("\n")
 
+    # =========================
+    # DATA TYPES
+    # =========================
+
+    print("\n" + "=" * 60)
+    print("DATA TYPES")
     print("=" * 60)
-    print("NUMERICAL SUMMARY")
+
+    print(df.dtypes)
+
+
+    # =========================
+    # MISSING VALUES
+    # =========================
+
+    print("\n" + "=" * 60)
+    print("MISSING VALUES")
+    print("=" * 60)
+
+    print(df.isnull().sum())
+
+
+    # =========================
+    # DUPLICATES
+    # =========================
+
+    print("\n" + "=" * 60)
+    print("DUPLICATE ROWS")
+    print("=" * 60)
+
+    print(df.duplicated().sum())
+
+
+    # =========================
+    # NUMERIC SUMMARY
+    # =========================
+
+    print("\n" + "=" * 60)
+    print("NUMERIC SUMMARY")
     print("=" * 60)
 
     print(df.describe())

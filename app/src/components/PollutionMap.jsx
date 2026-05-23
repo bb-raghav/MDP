@@ -1,105 +1,142 @@
 import {
   MapContainer,
   TileLayer,
-  CircleMarker,
+  Circle,
   Popup,
-} from "react-leaflet";
+  useMap,
+} from "react-leaflet"
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react"
 
-import axios from "axios";
+import "leaflet/dist/leaflet.css"
 
-import { useMap } from "react-leaflet";
-
-function FixMapSize() {
-
-  const map = useMap();
+function FlyToLocation({
+  lat,
+  lng,
+}) {
+  const map = useMap()
 
   useEffect(() => {
-    setTimeout(() => {
-      map.invalidateSize();
-    }, 100);
-  }, [map]);
+    map.flyTo(
+      [lat, lng],
+      10,
+      {
+        duration: 1.5,
+      }
+    )
+  }, [lat, lng])
 
-  return null;
+  return null
 }
 
-export default function PollutionMap() {
+export default function PollutionMap({
+  center,
+  liveAQI,
+  predictedZones,
+}) {
+  function getColor(aqi) {
+    if (aqi <= 50)
+      return "#00e400"
 
-  const [pollutionPoints, setPollutionPoints] = useState([]);
+    if (aqi <= 100)
+      return "#ffd700"
 
-  useEffect(() => {
+    if (aqi <= 150)
+      return "#ff9500"
 
-    axios
-      .get("http://127.0.0.1:8000/aqi-points")
-      .then((response) => {
-        setPollutionPoints(response.data);
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-
-  }, []);
+    return "#ff2d55"
+  }
 
   return (
+    <MapContainer
+      center={[
+        center.lat,
+        center.lon,
+      ]}
+      zoom={10}
+      style={{
+        height: "650px",
+        width: "100%",
+        borderRadius: "28px",
+      }}
+    >
+      <FlyToLocation
+        lat={center.lat}
+        lng={center.lon}
+      />
 
-    <div style={{ height: "420px", width: "100%" }}>
+      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
-      <MapContainer
-        center={[12.9716, 77.5946]}
-        zoom={11}
-        style={{
-          height: "100%",
-          width: "100%",
+      <Circle
+        center={[
+          center.lat,
+          center.lon,
+        ]}
+        radius={2500}
+        pathOptions={{
+          color: getColor(
+            liveAQI
+          ),
+          fillColor: getColor(
+            liveAQI
+          ),
+          fillOpacity: 0.45,
         }}
       >
+        <Popup>
+          <div>
+            <h3>
+              Live Sensor AQI
+            </h3>
 
-        <FixMapSize />
+            <p>
+              AQI: {liveAQI}
+            </p>
+          </div>
+        </Popup>
+      </Circle>
 
-        <TileLayer
-          attribution="&copy; OpenStreetMap contributors"
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-
-        {pollutionPoints.map((point, index) => (
-
-          <CircleMarker
-            key={index}
-            center={[point.lat, point.lon]}
-            radius={20}
+      {predictedZones.map(
+        (zone) => (
+          <Circle
+            key={zone.id}
+            center={[
+              zone.lat,
+              zone.lon,
+            ]}
+            radius={4000}
             pathOptions={{
-              color:
-                point.aqi > 80
-                  ? "red"
-                  : point.aqi > 60
-                  ? "orange"
-                  : "green",
-
-              fillOpacity: 0.6,
+              color: getColor(
+                zone.aqi
+              ),
+              fillColor: getColor(
+                zone.aqi
+              ),
+              fillOpacity: 0.25,
             }}
           >
-
             <Popup>
-
               <div>
-
-                <h2 className="font-bold">
-                  {point.name}
-                </h2>
+                <h3>
+                  AI Predicted AQI
+                </h3>
 
                 <p>
-                  AQI: {point.aqi}
+                  Estimated AQI:
+                  {" "}
+                  {zone.aqi}
                 </p>
 
+                <small>
+                  No physical sensor
+                  detected in this
+                  area.
+                </small>
               </div>
-
             </Popup>
-
-          </CircleMarker>
-        ))}
-
-      </MapContainer>
-
-    </div>
-  );
+          </Circle>
+        )
+      )}
+    </MapContainer>
+  )
 }
