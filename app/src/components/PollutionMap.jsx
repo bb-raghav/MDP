@@ -24,7 +24,7 @@ function FlyToLocation({
         duration: 1.5,
       }
     )
-  }, [lat, lng])
+  }, [lat, lng, map])
 
   return null
 }

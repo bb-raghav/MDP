@@ -1,22 +1,31 @@
 import pandas as pd
 import os
+import joblib
+
+ROOT_DIR = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "..", "..")
+)
 
 INPUT_FILE = os.path.join(
-    os.path.dirname(__file__),
-    "..",
-    "..",
+    ROOT_DIR,
     "data",
     "external",
     "data_1055_rows.csv"
 )
 
 OUTPUT_FILE = os.path.join(
-    os.path.dirname(__file__),
-    "..",
-    "..",
+    ROOT_DIR,
     "data",
     "processed",
     "aqi_training_data.csv"
+)
+
+CITY_ENCODER_FILE = os.path.join(
+    ROOT_DIR,
+    "backend",
+    "models",
+    "saved",
+    "city_encoder.pkl"
 )
 
 
@@ -93,12 +102,23 @@ def prepare_training_data():
 
     print("Encoding cities...\n")
 
-    df["city_encoded"] = (
-
+    city_categories = (
         df["city"]
+        .astype(str)
+        .str.strip()
+        .str.lower()
         .astype("category")
-        .cat.codes
     )
+
+    df["city_encoded"] = city_categories.cat.codes
+
+    city_encoder = {
+        "mapping": {
+            city: int(index)
+            for index, city in enumerate(city_categories.cat.categories)
+        },
+        "default_code": 0,
+    }
 
 
     # =========================
@@ -162,9 +182,13 @@ def prepare_training_data():
         index=False
     )
 
+    os.makedirs(os.path.dirname(CITY_ENCODER_FILE), exist_ok=True)
+    joblib.dump(city_encoder, CITY_ENCODER_FILE)
+
 
     print("\nTraining dataset saved!")
     print(f"Saved to: {OUTPUT_FILE}")
+    print(f"City encoder saved to: {CITY_ENCODER_FILE}")
 
 
 if __name__ == "__main__":

@@ -5,10 +5,12 @@ from sklearn.metrics import mean_absolute_error, r2_score
 import joblib
 import os
 
+ROOT_DIR = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "..", "..")
+)
+
 INPUT_FILE = os.path.join(
-    os.path.dirname(__file__),
-    "..",
-    "..",
+    ROOT_DIR,
     "data",
     "processed",
     "aqi_training_data.csv"
@@ -19,6 +21,13 @@ MODEL_OUTPUT = os.path.join(
     "..",
     "saved",
     "aqi_regression_model.pkl"
+)
+
+FEATURE_COLUMNS_OUTPUT = os.path.join(
+    os.path.dirname(__file__),
+    "..",
+    "saved",
+    "feature_columns.pkl"
 )
 
 
@@ -140,9 +149,15 @@ def train_model():
         MODEL_OUTPUT
     )
 
+    joblib.dump(
+        X.columns.tolist(),
+        FEATURE_COLUMNS_OUTPUT
+    )
+
 
     print("\nModel saved!")
     print(f"Saved to: {MODEL_OUTPUT}")
+    print(f"Feature columns saved to: {FEATURE_COLUMNS_OUTPUT}")
 
 
 if __name__ == "__main__":

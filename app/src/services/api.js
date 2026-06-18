@@ -11,7 +11,7 @@ export async function predictAQI(inputData) {
     const response = await API.post("/predict", inputData)
     return response.data
   } catch (error) {
-    console.log(error)
+    console.error(error)
     return null
   }
 }

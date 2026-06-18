@@ -9,7 +9,7 @@ if (!TOKEN) {
 export async function getLiveAQI(city) {
   try {
     const response = await axios.get(
-      `https://api.waqi.info/feed/${city}/?token=${TOKEN}`
+      `https://api.waqi.info/feed/${encodeURIComponent(city)}/?token=${TOKEN}`
     )
 
     const data = response.data.data
@@ -25,7 +25,7 @@ export async function getLiveAQI(city) {
       temp: data.iaqi?.t?.v || 30,
     }
   } catch (err) {
-    console.log(err)
+    console.error(err)
     return null
   }
 }

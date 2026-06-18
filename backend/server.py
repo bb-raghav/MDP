@@ -3,9 +3,15 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 from dotenv import load_dotenv
 
-import requests
-import joblib
 import pandas as pd
+
+from backend.models.inference.service import (
+    get_model_status,
+    predict_city,
+    predict_from_features,
+)
+from backend.services.aqi import fetch_live_aqi, get_category
+from backend.services.geocoding import geocode_city, suggest_places
 
 load_dotenv()
 
@@ -36,38 +42,6 @@ app.add_middleware(
 
 
 # =========================================
-# LOAD MODEL
-# =========================================
-
-model_path = os.path.join(
-    os.path.dirname(__file__),
-    "models",
-    "saved",
-    "aqi_regression_model.pkl"
-)
-model = joblib.load(model_path)
-
-
-# =========================================
-# AQI CATEGORY
-# =========================================
-
-def get_category(aqi):
-
-    if aqi <= 50:
-        return "Good"
-
-    elif aqi <= 100:
-        return "Moderate"
-
-    elif aqi <= 150:
-        return "Poor"
-
-    else:
-        return "Very Poor"
-
-
-# =========================================
 # ROOT
 # =========================================
 
@@ -79,6 +53,17 @@ def root():
     }
 
 
+@app.get("/health")
+def health():
+    model_status = get_model_status()
+
+    return {
+        "status": "ok",
+        "waqi_configured": bool(WAQI_TOKEN),
+        **model_status,
+    }
+
+
 # =========================================
 # GEOCODE
 # =========================================
@@ -86,116 +71,36 @@ def root():
 @app.get("/geocode/{city}")
 
 def geocode(city: str):
+    return geocode_city(city)
 
-    url = (
-        f"https://nominatim.openstreetmap.org/search"
-        f"?q={city}&format=json&limit=1"
-    )
 
-    headers = {
-        "User-Agent": "aqi-ai-project"
-    }
 
-    response = requests.get(
-        url,
-        headers=headers
-    )
-
-    data = response.json()
-
-    if len(data) == 0:
-
-        return {
-            "error": "City not found"
-        }
-
-    return {
-
-        "lat":
-            float(data[0]["lat"]),
-
-        "lon":
-            float(data[0]["lon"]),
-
-        "name":
-            city.title(),
-    }
+@app.get("/geocode-suggest/{query}")
+def geocode_suggest(query: str):
+    return suggest_places(query)
 
 
 # =========================================
 # LIVE AQI
 # =========================================
 
-WAQI_TOKEN = os.getenv("WAQI_API_KEY", "")
-if not WAQI_TOKEN:
-    raise ValueError("WAQI_API_KEY environment variable is required")
+WAQI_TOKEN = os.getenv("WAQI_API_KEY") or os.getenv("VITE_WAQI_API_KEY", "")
 
 
 @app.get("/live-aqi/{city}")
 
 def get_live_aqi(city: str):
+    return fetch_live_aqi(city, WAQI_TOKEN)
 
-    city = city.strip()
 
-    url = (
-        f"https://api.waqi.info/feed/"
-        f"{city}/?token={WAQI_TOKEN}"
-    )
+@app.get("/predict-city/{city}")
+def predict_city_aqi(city: str):
+    live_data = fetch_live_aqi(city, WAQI_TOKEN)
 
-    response = requests.get(url)
+    if live_data.get("error"):
+        return live_data
 
-    data = response.json()
-
-    if data["status"] != "ok":
-
-        return {
-            "error":
-            f"WAQI could not find {city}"
-        }
-
-    iaqi = data["data"].get("iaqi", {})
-
-    return {
-
-        "live_aqi":
-            data["data"].get("aqi", 0),
-
-        "pm25":
-            iaqi.get("pm25", {}).get("v", 0),
-
-        "pm10":
-            iaqi.get("pm10", {}).get("v", 0),
-
-        "no2":
-            iaqi.get("no2", {}).get("v", 0),
-
-        "so2":
-            iaqi.get("so2", {}).get("v", 0),
-
-        "co":
-            iaqi.get("co", {}).get("v", 0),
-
-        "temperature":
-            round(
-                iaqi.get("t", {}).get("v", 30),
-                1
-            ),
-
-        "humidity":
-            iaqi.get("h", {}).get("v", 60),
-
-        "pressure":
-            iaqi.get("p", {}).get("v", 1008),
-
-        "wind_speed":
-            iaqi.get("w", {}).get("v", 5),
-
-        "apparent_temperature":
-            round(
-                iaqi.get("t", {}).get("v", 30),
-                1
-            ),
-    }
+    return predict_city(city, live_data)
 
 
 # =========================================
@@ -209,11 +114,14 @@ def predict(payload: dict):
             return {"error": "Empty payload"}
 
         df = pd.DataFrame([payload])
-        prediction = model.predict(df)[0]
+        result = predict_from_features(df.iloc[0].to_dict())
+
+        if result.get("error"):
+            return result
 
         return {
-            "predicted_aqi": round(float(prediction), 1),
-            "category": get_category(prediction),
+            "predicted_aqi": result["predicted_aqi"],
+            "category": get_category(result["predicted_aqi"]),
         }
 
     except Exception as e:
